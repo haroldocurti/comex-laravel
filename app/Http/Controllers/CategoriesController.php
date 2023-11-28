@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
 class CategoriesController extends Controller
@@ -12,9 +14,7 @@ class CategoriesController extends Controller
      */
     public function index() : View
     {
-        $categories = ['Mobile',
-            'Computer','Furniture','Automotive',
-            'Books','Beauty','Sports','Premium'];
+        $categories = Category::all();
         return view('categories.index', compact('categories'));
     }
 
@@ -22,9 +22,9 @@ class CategoriesController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create():View
     {
-        //
+        return view('categories.create');
     }
 
     /**
@@ -32,7 +32,11 @@ class CategoriesController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $newCategoryName = $request->input('name');
+        $cat = new Category();
+        $cat->name = $newCategoryName;
+        $cat->save();
+        return redirect('/categories');
     }
 
     /**
