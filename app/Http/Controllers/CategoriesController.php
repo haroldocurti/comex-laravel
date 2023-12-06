@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CategoriesFormRequest;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
 class CategoriesController extends Controller
@@ -12,10 +12,12 @@ class CategoriesController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() : View
+    public function index(Request $request) : View
     {
-        $categories = Category::all();
-        return view('categories.index', compact('categories'));
+        $categories = Category::query()->orderBy('name')->get();
+        $successMessage = $request->session()->get('success.message');
+        return view('categories.index', compact('categories'))
+            ->with('successMessage', $successMessage);
     }
 
 
@@ -30,13 +32,11 @@ class CategoriesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CategoriesFormRequest $request)
     {
-        $newCategoryName = $request->input('name');
-        $cat = new Category();
-        $cat->name = $newCategoryName;
-        $cat->save();
-        return redirect('/categories');
+        $cat = Category::create($request->all());
+        $request->session()->flash('success.message', "Category '{$cat->name}' Added");
+        return to_route('categories.index');
     }
 
     /**
@@ -50,24 +50,30 @@ class CategoriesController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Category $category)
     {
-        //
+        return view('categories.edit')->with('category', $category);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Category $category, Request $request )
     {
-        //
+        $category->name = $request->name;
+        $category->save();
+        return to_route('categories.index')
+            ->with('success.message', 'Category Updated Successfully!');
+
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Category $category, Request $request)
     {
-        //
+        $category->delete();
+        return to_route('categories.index')
+            ->with('success.message', "Category '{$category->name}' Deleted");
     }
 }
